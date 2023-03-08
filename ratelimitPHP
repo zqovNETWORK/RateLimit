@@ -1,0 +1,45 @@
+<?php
+session_start();
+
+$limit = 10;
+$time_frame = 60;
+$key = 'ddos_protection_zqov_0555';
+$ip = $_SERVER['REMOTE_ADDR'];
+$whitelist = array("/////", "//////");
+
+function ping($host, $port, $timeout) {
+    $tB = microtime(true);
+    $fP = fSockOpen($host, $port, $errno, $errstr, $timeout);
+    if (!$fP) {
+        return false;
+    }
+    $tA = microtime(true);
+    return round((($tA - $tB) * 1000), 0);
+}
+
+if (!isset($_SESSION[$key])) {
+    $_SESSION[$key] = array();
+}
+
+$now = time();
+foreach ($_SESSION[$key] as $timestamp) {
+    if ($now - $timestamp > $time_frame) {
+        unset($_SESSION[$key][array_search($timestamp, $_SESSION[$key])]);
+    }
+}
+
+if (count($_SESSION[$key]) >= $limit) {
+    http_response_code(429);
+    die('DDoS Protection by zqov#0555: .................. ' . ($time_frame - ($now - $_SESSION[$key][0])) . ' .....................');
+} elseif (in_array($ip, $whitelist)) {
+} else {
+    $ping_result = ping($ip, 80, 1);
+    if ($ping_result !== false) {
+    } else {
+        http_response_code(429);
+        die('DDoS Protection by zqov#0555: ..............................');
+    }
+}
+
+array_push($_SESSION[$key], $now);
+?>
